@@ -1,0 +1,162 @@
+body {
+  background: linear-gradient(135deg, #1f1c2c, #928DAB);
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Card */
+.form-container {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(15px);
+  border-radius: 25px;
+  padding: 40px;
+  width: 100%;
+  max-width: 550px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  animation: slideUp 0.8s ease;
+}
+
+/* Headings */
+h2 {
+  text-align: center;
+  color: #fff;
+  margin-bottom: 25px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Progress bar */
+.progress {
+  height: 8px;
+  margin-bottom: 25px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.1);
+}
+.progress-bar {
+  background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+  border-radius: 20px;
+}
+
+/* Floating fields */
+.form-floating {
+  margin-bottom: 1.5rem;
+}
+
+.form-floating input,
+.form-floating select,
+.form-floating textarea {
+  background: #fff !important;
+  color: #212529 !important;
+  border: 1px solid #ced4da;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+/* Label styling */
+.form-floating label {
+  color: #666;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  padding-left: 0.4rem;
+}
+
+/* Floating effect */
+.form-floating input:focus ~ label,
+.form-floating select:focus ~ label,
+.form-floating textarea:focus ~ label,
+.form-floating input:not(:placeholder-shown) ~ label,
+.form-floating textarea:not(:placeholder-shown) ~ label,
+.form-floating select:valid ~ label {
+  color: #0d6efd;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transform: translateY(-0.5rem);
+}
+
+/* Focus field */
+.form-floating input:focus,
+.form-floating select:focus,
+.form-floating textarea:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25);
+}
+
+/* File input neat fix */
+.form-floating input[type="file"] {
+  padding: 0.55rem 1rem;
+}
+.form-floating input[type="file"] ~ label {
+  font-size: 0.85rem;
+  transform: translateY(-1.2rem);
+  color: #555;
+}
+
+/* Errors */
+.text-danger.small {
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  margin-left: 0.25rem;
+}
+
+/* Buttons */
+.btn-custom {
+  background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+  border: none;
+  color: white;
+  font-weight: 500;
+  border-radius: 15px;
+  padding: 12px;
+  transition: 0.3s;
+}
+.btn-custom:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,210,255,0.4);
+}
+
+/* Modals */
+.modal-content {
+  border-radius: 25px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(15px);
+  color: #fff;
+  text-align: center;
+  padding: 30px 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  animation: zoomIn 0.4s ease;
+}
+.modal-body i {
+  font-size: 55px;
+  margin-bottom: 15px;
+}
+.modal-body h5 {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.btn-modern {
+  background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+  color: white;
+  border-radius: 12px;
+  padding: 10px 25px;
+  border: none;
+  font-weight: 500;
+  transition: 0.3s;
+}
+.btn-modern:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(6, 166, 219, 0.4);
+}
+
+/* Animations */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes zoomIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

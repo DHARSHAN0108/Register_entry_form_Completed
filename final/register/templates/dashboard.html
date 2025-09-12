@@ -1,0 +1,2200 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointment Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/ds.css' %}">
+  <link rel="icon" href="{% static 'images/dashboard.png' %}">
+  <style>
+    /* Style for inline status and reminder badges */
+    .status-reminder-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    /* Improved styles for the toggle button */
+    .toggle-sidebar-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1001;
+      background: rgba(13, 110, 253, 0.9);
+      border: 1px solid rgba(13, 110, 253, 0.3);
+      color: white;
+      border-radius: 8px;
+      padding: 12px 15px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+    }
+    
+    .toggle-sidebar-btn:hover {
+      background: rgba(13, 110, 253, 1);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3);
+    }
+    
+    /* When sidebar is collapsed, change button position and style */
+    .sidebar.collapsed ~ .main-content .toggle-sidebar-btn {
+      left: 20px;
+      background: rgba(40, 167, 69, 0.9);
+      border-color: rgba(40, 167, 69, 0.3);
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+    
+    .sidebar.collapsed ~ .main-content .toggle-sidebar-btn:hover {
+      background: rgba(40, 167, 69, 1);
+    }
+    
+    @keyframes glow {
+      from {
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+      }
+      to {
+        box-shadow: 0 6px 25px rgba(40, 167, 69, 0.4);
+      }
+    }
+    
+    /* Sidebar improvements */
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem 1.5rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .show-sidebar-btn {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 20px;
+      transform: translateY(-50%);
+      z-index: 1002;
+      background: #00d2ff;
+      border: 2px solid #00d2ff;
+      color: white;
+      border-radius: 8px;
+      padding: 15px 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+      animation: pulseBlue 2s ease-in-out infinite alternate;
+    }
+    
+    .sidebar.collapsed ~ .show-sidebar-btn {
+      display: block;
+    }
+    
+    @keyframes pulseBlue {
+      from {
+        box-shadow: 0 4px 15px rgba(0, 210, 255, 0.2);
+      }
+      to {
+        box-shadow: 0 6px 25px rgba(0, 210, 255, 0.4);
+      }
+    }
+
+    /* Header entries control - NEW POSITION (below heading, above table) */
+    .header-entries-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 15px;
+      margin-bottom: 20px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+    }
+
+    .header-entries-control .entries-select {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-width: 70px;
+    }
+
+    .header-entries-control .entries-select:focus {
+      outline: none;
+      border-color: rgba(13, 110, 253, 0.6);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .header-entries-control .entries-select option {
+      background: #2c3e50;
+      color: white;
+      padding: 5px;
+    }
+
+    /* Modified pagination styles without entries dropdown */
+    .pagination-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      padding: 15px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      gap: 15px;
+    }
+
+    .pagination-info {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+      flex: 1;
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pagination-btn {
+      background: rgba(13, 110, 253, 0.8);
+      border: 1px solid rgba(13, 110, 253, 0.3);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: rgba(13, 110, 253, 1);
+      transform: translateY(-1px);
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .pagination-btn.active {
+      background: rgba(40, 167, 69, 0.9);
+      border-color: rgba(40, 167, 69, 0.3);
+    }
+
+    .page-input {
+      width: 60px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 6px 8px;
+      border-radius: 4px;
+    }
+
+    .page-input:focus {
+      outline: none;
+      border-color: rgba(13, 110, 253, 0.6);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Table improvements for consistent layout */
+    .table-custom {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-custom th {
+      background: rgba(13, 110, 253, 0.2);
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      padding: 15px 12px;
+      font-size: 0.9rem;
+    }
+
+    .table-custom td {
+      border: none;
+      padding: 12px;
+      vertical-align: middle;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .table-custom tbody tr:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* Empty state styling */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .empty-state h4 {
+      margin-bottom: 10px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    /* Loading state */
+    .loading-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #0d6efd;
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 15px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Status badges - UPDATED WITH ORANGE FOR PENDING_RESCHEDULE */
+    .status-pending { background: #6c757d; }
+    .status-approved { background: #28a745; }
+    .status-rejected { background: #dc3545; }
+    .status-rescheduled { background: #ffc107; color: #000; }
+    .status-completed { background: #6f42c1; }
+    .status-scheduled { background: #17a2b8; }
+    .status-pending_reschedule { background: #fd7e14; color: #ffffff; } /* Orange background for pending_reschedule */
+
+    /* Duration badge styling */
+    .duration-badge {
+      background: rgba(108, 117, 125, 0.8);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .duration-active {
+      background: rgba(40, 167, 69, 0.8);
+    }
+
+    .duration-long {
+      background: rgba(255, 193, 7, 0.8);
+      color: #000;
+    }
+
+    .duration-very-long {
+      background: rgba(220, 53, 69, 0.8);
+    }
+
+    /* Check-out Modal Styles */
+    .checkout-modal .modal-content {
+      background: linear-gradient(135deg, #1f1c2c, #928DAB);
+      border-radius: 25px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    }
+
+    .checkout-modal .modal-header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1.5rem;
+    }
+
+    .checkout-modal .modal-title {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .checkout-modal .modal-body {
+      padding: 1.5rem;
+    }
+
+    .checkout-modal .modal-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 1rem 1.5rem;
+    }
+
+    .checkout-modal .form-section {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 25px;
+      backdrop-filter: blur(10px);
+    }
+
+    .checkout-modal .form-section h4 {
+      color: #fff;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .checkout-modal .appointment-details {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 25px;
+      backdrop-filter: blur(10px);
+    }
+
+    .checkout-modal .appointment-details h5 {
+      color: #fff;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+
+    .checkout-modal .appointment-detail {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      color: rgba(255,255,255,0.9);
+      font-size: 0.95rem;
+    }
+
+    .checkout-modal .appointment-detail i {
+      width: 25px;
+      color: #00d2ff;
+      margin-right: 10px;
+    }
+
+    .checkout-modal .form-floating {
+      margin-bottom: 1.5rem;
+    }
+
+    .checkout-modal .form-floating input,
+    .checkout-modal .form-floating select,
+    .checkout-modal .form-floating textarea {
+      background: #fff !important;
+      color: #212529 !important;
+      border: 1px solid #ced4da;
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+
+    .checkout-modal .form-floating label {
+      color: #666;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      padding-left: 0.4rem;
+    }
+
+    .checkout-modal .form-floating input:focus ~ label,
+    .checkout-modal .form-floating select:focus ~ label,
+    .checkout-modal .form-floating textarea:focus ~ label,
+    .checkout-modal .form-floating input:not(:placeholder-shown) ~ label,
+    .checkout-modal .form-floating textarea:not(:placeholder-shown) ~ label,
+    .checkout-modal .form-floating select:valid ~ label {
+      color: #0d6efd;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transform: translateY(-0.5rem);
+    }
+
+    .checkout-modal .form-floating input:focus,
+    .checkout-modal .form-floating select:focus,
+    .checkout-modal .form-floating textarea:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25);
+    }
+
+    .checkout-modal .btn-custom {
+      background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+      border: none;
+      color: white;
+      font-weight: 500;
+      border-radius: 15px;
+      padding: 12px 25px;
+      transition: 0.3s;
+    }
+
+    .checkout-modal .btn-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,210,255,0.4);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .pagination-container {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .pagination-info {
+        order: 1;
+        text-align: center;
+      }
+      
+      .pagination-controls {
+        order: 2;
+      }
+      
+      .header-entries-control {
+        justify-content: center;
+      }
+
+      /* Make reports table more responsive */
+      .table-responsive {
+        font-size: 0.85rem;
+      }
+      
+      .table-custom th,
+      .table-custom td {
+        padding: 8px 6px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .header-entries-control {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="toggle-sidebar-btn" id="toggleSidebar">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- Separate show sidebar button -->
+  <button class="show-sidebar-btn" id="showSidebarBtn" title="Show Navigation Menu">
+    <i class="fas fa-chevron-right"></i>
+  </button>
+
+  <div class="dashboard-wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h3><i class="fas fa-calendar-check me-2"></i>Dashboard</h3>
+        <button class="sidebar-toggle" id="closeSidebar" title="Hide Sidebar">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li>
+          <a href="#" class="menu-item active" data-section="all">
+            <i class="fas fa-list-ul"></i>
+            <span>All Appointments</span>
+            <span class="badge bg-primary" id="count-all">0</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="menu-item" data-section="scheduled">
+            <i class="fas fa-calendar-day"></i>
+            <span>Scheduled</span>
+            <span class="badge bg-info" id="count-scheduled">0</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="menu-item" data-section="approved">
+            <i class="fas fa-check-circle"></i>
+            <span>Approved</span>
+            <span class="badge bg-success" id="count-approved">0</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="menu-item" data-section="rejected">
+            <i class="fas fa-times-circle"></i>
+            <span>Rejected</span>
+            <span class="badge bg-danger" id="count-rejected">0</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="menu-item" data-section="rescheduling">
+            <i class="fas fa-calendar-times"></i>
+            <span>Rescheduling</span>
+            <span class="badge bg-warning" id="count-rescheduling">0</span>
+          </a>
+        </li>
+        <!-- Add this to the sidebar menu, after the existing menu items -->
+        <li>
+          <a href="#" class="menu-item" data-section="reports">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Reports</span>
+            <span class="badge bg-info" id="count-reports">0</span>
+          </a>
+        </li>
+      </ul>
+      
+      <div class="mt-auto p-3">
+        <a href="{% url 'receptionist_logout' %}" class="btn btn-danger w-100">
+          <i class="fas fa-sign-out-alt me-2"></i>Logout
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+      <div class="dashboard-container">
+        <!-- Header -->
+        <div class="content-header">
+          <h1 class="content-title">
+            <i class="fas fa-calendar-alt me-2"></i>
+            <span id="section-title">All Appointments</span>
+          </h1>
+          <div class="welcome-user">
+            <i class="fas fa-user"></i>Welcome, {{ receptionist_username }}
+          </div>
+        </div>
+
+        <!-- Content Area -->
+        <div id="content-area">
+          <!-- Loading State -->
+          <div class="loading-state" id="loading-state">
+            <div class="loading-spinner"></div>
+            <p>Loading appointments...</p>
+          </div>
+
+          <!-- Main Content Section -->
+          <div class="content-section d-none" id="main-content-section">
+            
+            <!-- Entries Control - NEW POSITION (below heading, above table) -->
+            <div class="header-entries-control">
+              <label for="entries-select">Show</label>
+              <select class="entries-select" id="entries-select">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="all">All</option>
+              </select>
+              <span>entries</span>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-hover table-custom text-center align-middle" id="appointments-table">
+                <thead id="table-header">
+                  <!-- Headers will be generated dynamically -->
+                </thead>
+                <tbody id="table-body">
+                  <!-- Data will be populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Simplified Pagination without Entries Dropdown -->
+            <div class="pagination-container">              
+              <div class="pagination-info" id="pagination-info">
+                <!-- Showing X to Y of Z entries -->
+              </div>
+              
+              <div class="pagination-controls">
+                <button class="pagination-btn" id="first-btn" title="First Page">
+                  <i class="fas fa-angle-double-left"></i>
+                </button>
+                <button class="pagination-btn" id="prev-btn" title="Previous Page">
+                  <i class="fas fa-angle-left"></i>
+                </button>
+                
+                <input type="number" class="page-input" id="page-input" min="1" title="Go to page">
+                <span style="color: rgba(255, 255, 255, 0.6);">of</span>
+                <span id="total-pages" style="color: rgba(255, 255, 255, 0.8);">1</span>
+                
+                <button class="pagination-btn" id="next-btn" title="Next Page">
+                  <i class="fas fa-angle-right"></i>
+                </button>
+                <button class="pagination-btn" id="last-btn" title="Last Page">
+                  <i class="fas fa-angle-double-right"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state d-none" id="empty-state">
+              <i class="fas fa-calendar-times"></i>
+              <h4>No appointments found</h4>
+              <p>There are no appointments to display for the selected category.</p>
+            </div>
+          </div>
+
+          <!-- Reports Section -->
+          <div class="content-section d-none" id="reports-section">
+            
+            <!-- Filter Section - Matching the entries control style -->
+            <div class="header-entries-control">
+              <label for="dateFilter">Filter by Date</label>
+              <input type="date" class="entries-select" id="dateFilter" name="date" style="width: auto;">
+              <button type="button" class="pagination-btn" id="applyReportFilter">
+                <i class="fas fa-filter me-1"></i>Apply
+              </button>
+              <button type="button" class="pagination-btn" id="resetReportFilter">
+                <i class="fas fa-sync me-1"></i>Reset
+              </button>
+            </div>
+
+            <!-- Report Table - Updated with Duration Column -->
+            <div class="table-responsive">
+              <table class="table table-hover table-custom text-center align-middle" id="report-table">
+                <thead>
+                  <tr>
+                    <th>S.No</th>
+                    <th>Visitor Name</th>
+                    <th>Phone</th>
+                    <th>Check-In Time</th>
+                    <th>Check-Out Time</th>
+                    <th>Duration</th>
+                    <th>User Remarks</th>
+                    <th>Attendee Remarks</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="report-table-body">
+                  <!-- Data will be populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination Info - Matching the style -->
+            <div class="pagination-container">              
+              <div class="pagination-info" id="report-pagination-info">
+                Showing 0 to 0 of 0 entries
+              </div>
+            </div>
+
+            <!-- Empty State for Reports -->
+            <div class="empty-state d-none" id="report-empty-state">
+              <i class="fas fa-clipboard-list"></i>
+              <h4>No check-in/out records found</h4>
+              <p>There are no records to display for the selected date.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmationMessage">Are you sure you want to perform this action?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-modal-confirm" id="confirmAction">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reschedule Modal -->
+  <div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="rescheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="rescheduleModalLabel">
+            <i class="fas fa-calendar-alt me-2"></i>Reschedule Appointment
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="rescheduleForm">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="rescheduleDate" class="form-label">New Date</label>
+                <input type="date" class="form-control" id="rescheduleDate" required>
+              </div>
+              <div class="col-md-6">
+                <label for="rescheduleTime" class="form-label">New Time</label>
+                <input type="time" class="form-control" id="rescheduleTime" required>
+                <div class="form-text" id="timeRestrictionText">Available between 10:00 AM and 10:00 PM</div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="submitReschedule">
+            <i class="fas fa-calendar-check me-2"></i>Reschedule Appointment
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- dashboard.html - Update the checkout form and JavaScript -->
+
+<!-- Check-out Modal -->
+<div class="modal fade checkout-modal" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="checkoutModalLabel">
+          <i class="fas fa-calendar-check me-2"></i>Visitor Check-Out
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Check-Out Form -->
+        <div class="form-section">
+          <h4><i class="fas fa-sign-out-alt me-2"></i>Check-Out Form</h4>
+          <form id="checkoutForm">
+            <input type="hidden" name="appointment_id" id="checkoutAppointmentId">
+            <div class="form-floating mb-4">
+              <textarea class="form-control" id="attendee_remarks" name="attendee_remarks" placeholder=" " style="height: 100px"></textarea>
+              <label for="attendee_remarks">
+                <i class="fas fa-comment me-1"></i>Attendee Remarks (Optional)
+              </label>
+            </div>
+            <button type="submit" class="btn btn-custom">
+              <i class="fas fa-sign-out-alt me-2"></i>Check Out
+            </button>
+          </form>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Success Message Modal -->
+  <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="successModalLabel">
+            <i class="fas fa-check-circle me-2 text-success"></i>Success
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="successMessage">Operation completed successfully!</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message Modal -->
+  <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="errorModalLabel">
+            <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Error
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="errorMessage">An error occurred. Please try again.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Validation Message Modal -->
+  <div class="modal fade" id="validationModal" tabindex="-1" aria-labelledby="validationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="validationModalLabel">
+            <i class="fas fa-info-circle me-2 text-info"></i>Please Check
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="validationMessage">Please check your input and try again.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-info" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Global variables
+    let allAppointments = [];
+    let filteredAppointments = [];
+    let attendeeChoices = [];
+    let pendingAction = null;
+    let currentRescheduleId = null;
+    let currentSection = 'all';
+    let checkInOutRecords = [];
+    let currentEditRow = null;
+    
+    // Pagination variables - itemsPerPage is now dynamic
+    let currentPage = 1;
+    let itemsPerPage = 5; // Default value
+    let totalPages = 1;
+
+    // Show different types of popup messages
+    function showSuccessMessage(message) {
+      document.getElementById('successMessage').textContent = message;
+      const modal = new bootstrap.Modal(document.getElementById('successModal'));
+      modal.show();
+    }
+
+    function showErrorMessage(message) {
+      document.getElementById('errorMessage').textContent = message;
+      const modal = new bootstrap.Modal(document.getElementById('errorModal'));
+      modal.show();
+    }
+
+    function showValidationMessage(message) {
+      document.getElementById('validationMessage').textContent = message;
+      const modal = new bootstrap.Modal(document.getElementById('validationModal'));
+      modal.show();
+    }
+
+    // Calculate duration between check-in and check-out times
+    function calculateDuration(inTime, outTime) {
+      if (!inTime) {
+        return { text: 'Not checked in', class: 'duration-badge' };
+      }
+      
+      if (!outTime) {
+        // Calculate ongoing duration from check-in time to now
+        const checkInDate = new Date(inTime);
+        const now = new Date();
+        const diffMs = now - checkInDate;
+        const hours = Math.floor(diffMs / (1000 * 60 * 60));
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        
+        let durationClass = 'duration-badge duration-active';
+        
+        // Apply different colors based on duration
+        if (hours >= 8) {
+          durationClass = 'duration-badge duration-very-long';
+        } else if (hours >= 4) {
+          durationClass = 'duration-badge duration-long';
+        }
+        
+        return {
+          text: `${hours}h ${minutes}m (ongoing)`,
+          class: durationClass
+        };
+      }
+      
+      // Calculate completed duration
+      const checkInDate = new Date(inTime);
+      const checkOutDate = new Date(outTime);
+      const diffMs = checkOutDate - checkInDate;
+      
+      if (diffMs <= 0) {
+        return { text: 'Invalid duration', class: 'duration-badge' };
+      }
+      
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      
+      let durationClass = 'duration-badge';
+      
+      // Apply different colors based on duration
+      if (hours >= 8) {
+        durationClass = 'duration-badge duration-very-long';
+      } else if (hours >= 4) {
+        durationClass = 'duration-badge duration-long';
+      }
+      
+      return {
+        text: `${hours}h ${minutes}m`,
+        class: durationClass
+      };
+    }
+
+    // Fetch appointments from server
+    async function fetchAppointments() {
+      try {
+        showLoading();
+        const response = await fetch('/get_appointments/');
+        const data = await response.json();
+        allAppointments = data.appointments;
+        
+        // Store attendee choices if available in response
+        if (data.attendee_choices) {
+          attendeeChoices = data.attendee_choices;
+        }
+        
+        // Sort appointments by date (newest first)
+        allAppointments.sort((a, b) => {
+          const dateA = new Date(a.appointment_date + ' ' + a.appointment_time);
+          const dateB = new Date(b.appointment_date + ' ' + b.appointment_time);
+          return dateA - dateB;
+        });
+        
+        filterAndRenderAppointments(currentSection);
+        updateCounts();
+        populateAttendeeChoices();
+        hideLoading();
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+        hideLoading();
+      }
+    }
+
+    // Show loading state
+    function showLoading() {
+      document.getElementById('loading-state').classList.remove('d-none');
+      document.getElementById('main-content-section').classList.add('d-none');
+      document.getElementById('reports-section').classList.add('d-none');
+    }
+
+    // Hide loading state
+    function hideLoading() {
+      document.getElementById('loading-state').classList.add('d-none');
+      if (currentSection === 'reports') {
+        document.getElementById('reports-section').classList.remove('d-none');
+      } else {
+        document.getElementById('main-content-section').classList.remove('d-none');
+      }
+    }
+
+    // Filter appointments based on section
+    function filterAppointments(section) {
+      if (section === 'all') {
+        return allAppointments;
+      } else if (section === 'scheduled') {
+        return allAppointments.filter(a => a.status === 'pending');
+      } else if (section === 'rescheduling') {
+        // Combined section for both rescheduled and pending_reschedule
+        return allAppointments.filter(a => 
+          a.status === 'rescheduled' || a.status === 'pending_reschedule'
+        );
+      } else {
+        return allAppointments.filter(a => a.status === section);
+      }
+    }
+
+    // Update the section switching logic
+    function filterAndRenderAppointments(section) {
+      currentSection = section;
+      
+      // Hide all content sections first
+      document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.add('d-none');
+      });
+      
+      if (section === 'reports') {
+        // Show reports section
+        document.getElementById('reports-section').classList.remove('d-none');
+        // Fetch reports data
+        fetchCheckInOutRecords();
+      } else {
+        // Show appointments section
+        document.getElementById('main-content-section').classList.remove('d-none');
+        
+        // Filter and render appointments (existing code)
+        filteredAppointments = filterAppointments(section);
+        
+        // Handle "Show All" option
+        if (itemsPerPage === 'all') {
+          totalPages = 1;
+          currentPage = 1;
+        } else {
+          totalPages = Math.ceil(filteredAppointments.length / parseInt(itemsPerPage));
+          // Reset to first page if current page exceeds total pages
+          if (currentPage > totalPages && totalPages > 0) {
+            currentPage = 1;
+          }
+        }
+        
+        renderAppointmentsTable();
+        updatePagination();
+      }
+    }
+
+    // Handle entries per page change
+    function handleEntriesChange() {
+      const entriesSelect = document.getElementById('entries-select');
+      itemsPerPage = entriesSelect.value;
+      
+      // Save user preference
+      localStorage.setItem('dashboardItemsPerPage', itemsPerPage);
+      
+      // Reset to first page and re-render
+      currentPage = 1;
+      filterAndRenderAppointments(currentSection);
+    }
+
+    // Load saved entries preference
+    function loadEntriesPreference() {
+      const savedEntries = localStorage.getItem('dashboardItemsPerPage');
+      if (savedEntries) {
+        itemsPerPage = savedEntries;
+        document.getElementById('entries-select').value = savedEntries;
+      }
+    }
+
+    // Generate table headers based on section
+    function generateTableHeaders(section) {
+      const commonHeaders = `
+        <tr>
+          <th style="width: 4%;">S.No</th>
+          <th style="width: 10%;">Date</th>
+          <th style="width: 8%;">Time</th>
+          <th style="width: 12%;">Name</th>
+          <th style="width: 12%;">Email</th>
+          <th style="width: 10%;">Phone</th>
+          <th style="width: 8%;">Category</th>
+          <th style="width: 8%;">Attendee</th>
+          <th style="width: 12%;">Reason</th>
+          <th style="width: 8%;">Status</th>
+          <th style="width: 6%;">Document</th>
+          ${section !== 'all' ? '<th style="width: 12%;">Actions</th>' : ''}
+        </tr>
+      `;
+
+      if (section === 'rescheduling') {
+        return `
+          <tr>
+            <th>S.No</th>
+            <th>Original Date</th>
+            <th>Original Time</th>
+            <th>New Date</th>
+            <th>New Time</th>
+            <th>Name</th>
+            <th>Contact</th>
+            <th>Attendee</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        `;
+      }
+
+      return commonHeaders;
+    }
+
+    // Render appointments table
+    function renderAppointmentsTable() {
+      const tableHeader = document.getElementById('table-header');
+      const tableBody = document.getElementById('table-body');
+      const emptyState = document.getElementById('empty-state');
+      const table = document.getElementById('appointments-table');
+      const paginationContainer = document.querySelector('.pagination-container');
+
+      // Generate headers
+      tableHeader.innerHTML = generateTableHeaders(currentSection);
+
+      // Clear table body
+      tableBody.innerHTML = '';
+
+      if (filteredAppointments.length === 0) {
+        table.style.display = 'none';
+        emptyState.classList.remove('d-none');
+        paginationContainer.style.display = 'none';
+        return;
+      }
+
+      table.style.display = 'table';
+      emptyState.classList.add('d-none');
+      paginationContainer.style.display = 'flex';
+
+      // Calculate pagination
+      let paginatedAppointments;
+      let startIndex;
+      
+      if (itemsPerPage === 'all') {
+        paginatedAppointments = filteredAppointments;
+        startIndex = 0;
+      } else {
+        startIndex = (currentPage - 1) * parseInt(itemsPerPage);
+        const endIndex = startIndex + parseInt(itemsPerPage);
+        paginatedAppointments = filteredAppointments.slice(startIndex, endIndex);
+      }
+
+      // Render appointments
+      paginatedAppointments.forEach((app, index) => {
+        const row = document.createElement('tr');
+        row.setAttribute('data-id', app.id);
+        row.setAttribute('data-status', app.status);
+        
+        const globalIndex = startIndex + index + 1;
+        const statusClass = `status-${app.status}`;
+        const statusText = app.status.charAt(0).toUpperCase() + app.status.slice(1);
+
+        if (currentSection === 'rescheduling') {
+          const statusClass = app.status === 'pending_reschedule' ? 'status-pending_reschedule' : 'status-rescheduled';
+          const statusText = app.status === 'pending_reschedule' ? 'Pending Approval' : 'Approved';
+          const statusBadgeClass = app.status === 'pending_reschedule' ? 'bg-warning text-dark' : 'bg-success';
+          // Add reminder clock for rescheduled (approved) appointments
+          let reminderClock = '';
+          if (app.status === 'rescheduled') {
+            reminderClock = `<span class=\"reminder-clock\" id=\"reminder-clock-${app.id}\"></span>`;
+          }
+          row.innerHTML = `
+            <td>${globalIndex}</td>
+            <td><span class=\"badge bg-secondary\">${app.appointment_date}</span></td>
+            <td><span class=\"badge bg-secondary\">${app.appointment_time}</span></td>
+            <td><span class=\"text-warning\">${app.rescheduled_date || 'N/A'}</span></td>
+            <td><span class=\"badge bg-warning text-dark\">${app.rescheduled_time || 'N/A'}</span></td>
+            <td>${app.name}</td>
+            <td>${app.phone}</td>
+            <td><span class=\"badge bg-info\">${getAttendeeDisplayName(app.designated_attendee)}</span></td>
+            <td><span class=\"status-reminder-group\"><span class=\"badge ${statusBadgeClass} ${statusClass}\">${statusText}</span>${reminderClock}</span></td>
+            <td>
+              <div class=\"action-buttons\"> 
+                ${generateActionButtons(app, currentSection)}
+              </div>
+            </td>
+          `;
+        } else {
+          let reminderClock = '';
+          if ((app.status === 'approved' || app.status === 'rescheduled') && currentSection !== 'all') {
+            reminderClock = `<span class=\"reminder-clock\" id=\"reminder-clock-${app.id}\"></span>`;
+          }
+          row.innerHTML = `
+            <td>${globalIndex}</td>
+            <td><span class="badge bg-info">${app.appointment_date}</span></td>
+            <td><span class="badge bg-warning text-dark">${app.appointment_time}</span></td>
+            <td>${app.name}</td>
+            <td>${app.email}</td>
+            <td>${app.phone}</td>
+            <td><span class="badge bg-info">${app.category}</span></td>
+            <td><span class="badge bg-success">${getAttendeeDisplayName(app.designated_attendee)}</span></td>
+            <td>${app.reason}</td>
+            <td><span class="status-reminder-group"><span class="badge ${statusClass}">${statusText}</span>${reminderClock}</span></td>
+            <td>
+              ${app.document_url 
+                ? `<a href="${app.document_url}" class="btn btn-sm btn-outline-light" target="_blank">
+                    <i class="fas fa-file-pdf"></i>
+                  </a>`
+                : '<span class="text-muted">No file</span>'}
+            </td>
+            ${currentSection !== 'all' ? `
+              <td>
+                <div class="action-buttons">
+                  ${generateActionButtons(app, currentSection)}
+                </div>
+              </td>
+            ` : ''}
+          `;
+        }
+        
+        tableBody.appendChild(row);
+      });
+
+      // Auto-hide sidebar after rendering (on mobile)
+      if (window.innerWidth <= 768) {
+        hideSidebar();
+      }
+    }
+
+    // Update pagination controls
+    function updatePagination() {
+      const paginationInfo = document.getElementById('pagination-info');
+      const pageInput = document.getElementById('page-input');
+      const totalPagesSpan = document.getElementById('total-pages');
+      const firstBtn = document.getElementById('first-btn');
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+      const lastBtn = document.getElementById('last-btn');
+
+      let startRecord, endRecord;
+      
+      if (itemsPerPage === 'all') {
+        startRecord = filteredAppointments.length === 0 ? 0 : 1;
+        endRecord = filteredAppointments.length;
+        
+        // Hide pagination controls when showing all
+        document.querySelectorAll('.pagination-btn, .page-input, #total-pages').forEach(el => {
+          el.style.display = 'none';
+        });
+        document.querySelectorAll('.pagination-controls span').forEach(el => {
+          el.style.display = 'none';
+        });
+      } else {
+        startRecord = filteredAppointments.length === 0 ? 0 : (currentPage - 1) * parseInt(itemsPerPage) + 1;
+        endRecord = Math.min(currentPage * parseInt(itemsPerPage), filteredAppointments.length);
+        
+        // Show pagination controls
+        document.querySelectorAll('.pagination-btn, .page-input, #total-pages').forEach(el => {
+          el.style.display = '';
+        });
+        document.querySelectorAll('.pagination-controls span').forEach(el => {
+          el.style.display = '';
+        });
+        
+        pageInput.value = currentPage;
+        pageInput.max = totalPages;
+        totalPagesSpan.textContent = totalPages;
+
+        // Update button states
+        firstBtn.disabled = currentPage === 1;
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+        lastBtn.disabled = currentPage === totalPages || totalPages === 0;
+      }
+
+      paginationInfo.textContent = `Showing ${startRecord} to ${endRecord} of ${filteredAppointments.length} entries`;
+    }
+
+    // Navigation functions
+    function goToPage(page) {
+      if (itemsPerPage !== 'all' && page >= 1 && page <= totalPages) {
+        currentPage = page;
+        renderAppointmentsTable();
+        updatePagination();
+      }
+    }
+
+    function nextPage() {
+      if (itemsPerPage !== 'all' && currentPage < totalPages) {
+        goToPage(currentPage + 1);
+      }
+    }
+
+    function prevPage() {
+      if (itemsPerPage !== 'all' && currentPage > 1) {
+        goToPage(currentPage - 1);
+      }
+    }
+
+    function firstPage() {
+      if (itemsPerPage !== 'all') {
+        goToPage(1);
+      }
+    }
+
+    function lastPage() {
+      if (itemsPerPage !== 'all') {
+        goToPage(totalPages);
+      }
+    }
+
+    // Generate action buttons based on section and appointment status
+    function generateActionButtons(app, section) {
+      let buttons = '';
+      
+      // For All Appointments section, no action buttons
+      if (section === 'all') {
+        return '';
+      }
+      
+      switch (section) {
+        case 'scheduled':
+          buttons = `
+            <button class="btn-action btn-approve" onclick="updateStatus(${app.id}, 'approved')" ${app.status === 'approved' ? 'disabled' : ''}>
+              <i class="fas fa-check"> </i><b> Approve</b>
+            </button>
+            <button class="btn-action btn-reject" onclick="updateStatus(${app.id}, 'rejected')" ${app.status === 'rejected' ? 'disabled' : ''}>
+              <i class="fas fa-times"> </i><b> Reject</b>
+            </button>
+            <button class="btn-action btn-reschedule" onclick="showRescheduleModal(${app.id})">
+              <i class="fas fa-clock"></i><b> Reschedule</b>
+            </button>
+          `;
+          break;
+          
+        case 'approved':
+        case 'rescheduled':
+          // Show only reject and delete, and a reminder clock
+          buttons = `
+            <button class="btn-action btn-reject" onclick="updateStatus(${app.id}, 'rejected')">
+              <i class="fas fa-times"></i><b> Reject</b>
+            </button>
+            <button class="btn-action btn-delete" onclick="showConfirmation('Are you sure you want to permanently delete this appointment?', () => deleteAppointment(${app.id}))">
+              <i class="fas fa-trash"></i><b> Delete</b>
+            </button>
+            <span class="reminder-clock" id="reminder-clock-${app.id}"></span>
+          `;
+          break;
+
+        case 'rejected':
+          buttons = `
+            <button class="btn-action btn-reschedule" onclick="showRescheduleModal(${app.id})">
+              <i class="fas fa-clock"></i><b> Reschedule</b>
+            </button>
+            <button class="btn-action btn-delete" onclick="showConfirmation('Are you sure you want to permanently delete this appointment?', () => deleteAppointment(${app.id}))">
+              <i class="fas fa-trash"></i><b> Delete</b>
+            </button>
+          `;
+          break;
+          
+        case 'rescheduling':
+          // Combined section: different actions based on actual status
+          if (app.status === 'pending_reschedule') {
+            // Pending reschedule: approve or reject
+            buttons = `
+              <button class="btn-action btn-approve" onclick="approveReschedule(${app.id})" title="Approve Reschedule">
+                <i class="fas fa-check"></i><b> Approve</b>
+              </button>
+              <button class="btn-action btn-reject" onclick="updateStatus(${app.id}, 'rejected')" title="Reject Reschedule">
+                <i class="fas fa-times"></i><b> Reject</b>
+              </button>
+            `;
+          } else if (app.status === 'rescheduled') {
+            // Already rescheduled: delete or reject only
+            buttons = `
+              <button class="btn-action btn-reject" onclick="updateStatus(${app.id}, 'rejected')" title="Reject Appointment">
+                <i class="fas fa-times"></i><b> Reject</b>
+              </button>
+              <button class="btn-action btn-delete" onclick="showConfirmation('Are you sure you want to permanently delete this appointment?', () => deleteAppointment(${app.id}))">
+                <i class="fas fa-trash"></i><b> Delete</b>
+              </button>
+            `;
+          }
+          break;
+          
+        default:
+          buttons = '';
+      }
+      
+      return buttons;
+    }
+
+    // Fetch attendee choices from server if not already loaded
+    async function fetchAttendeeChoices() {
+      try {
+        const response = await fetch('/get_attendee_choices/');
+        const data = await response.json();
+        attendeeChoices = data.attendees;
+        populateAttendeeChoices();
+      } catch (error) {
+        console.error('Error fetching attendee choices:', error);
+      }
+    }
+
+    // Populate the attendee dropdown in the reschedule modal
+    function populateAttendeeChoices() {
+      const select = document.getElementById('rescheduleAttendee');
+      
+      // Clear existing options except the first one
+      if (select) {
+        select.innerHTML = '<option value="">Select Attendee</option>';
+        
+        // Add dynamic options
+        attendeeChoices.forEach(choice => {
+          const option = document.createElement('option');
+          option.value = choice.value;
+          option.textContent = choice.display;
+          select.appendChild(option);
+        });
+      }
+    }
+
+    // Helper function to get attendee display name from value
+    function getAttendeeDisplayName(attendeeValue) {
+      const attendee = attendeeChoices.find(choice => choice.value === attendeeValue);
+      return attendee ? attendee.display : attendeeValue || 'Not Assigned';
+    }
+
+    // Update appointment status on server
+    async function updateStatus(appointmentId, newStatus) {
+      try {
+        const response = await fetch('/update_appointment_status/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+          },
+          body: JSON.stringify({
+            id: appointmentId,
+            status: newStatus
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Update local data
+          const appointment = allAppointments.find(a => a.id == appointmentId);
+          if (appointment) {
+            appointment.status = newStatus;
+          }
+          
+          // Re-filter and render
+          filterAndRenderAppointments(currentSection);
+          updateCounts();
+        }
+      } catch (error) {
+        console.error('Error updating appointment status:', error);
+      }
+    }
+
+    // Receptionist reschedule appointment
+    async function rescheduleByReceptionist(appointmentId, newDate, newTime, newAttendee, reason) {
+      try {
+        const response = await fetch('/receptionist_reschedule/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+          },
+          body: JSON.stringify({
+            id: appointmentId,
+            new_date: newDate,
+            new_time: newTime,
+            new_attendee: newAttendee,
+            reason: reason
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Update local data
+          const appointment = allAppointments.find(a => a.id == appointmentId);
+          if (appointment) {
+            appointment.rescheduled_date = newDate;
+            appointment.rescheduled_time = newTime;
+            appointment.designated_attendee = newAttendee;
+            appointment.reschedule_reason = reason;
+            appointment.status = 'pending_reschedule';
+          }
+          
+          filterAndRenderAppointments(currentSection);
+          updateCounts();
+          
+          showSuccessMessage('Appointment rescheduled successfully! It\'s now pending approval.');
+        } else {
+          showErrorMessage('Error rescheduling appointment: ' + data.error);
+        }
+      } catch (error) {
+        console.error('Error rescheduling appointment:', error);
+        showErrorMessage('Error rescheduling appointment. Please try again.');
+      }
+    }
+
+    // Approve rescheduled appointment
+    async function approveReschedule(appointmentId) {
+      try {
+        const response = await fetch('/approve_reschedule/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+          },
+          body: JSON.stringify({
+            id: appointmentId
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Update local data
+          const appointment = allAppointments.find(a => a.id == appointmentId);
+          if (appointment) {
+            appointment.appointment_date = appointment.rescheduled_date;
+            appointment.appointment_time = appointment.rescheduled_time;
+            appointment.status = 'rescheduled';
+          }
+          
+          filterAndRenderAppointments(currentSection);
+          updateCounts();
+          
+          showSuccessMessage('Reschedule approved! User will receive confirmation email.');
+        } else {
+          showErrorMessage('Error approving reschedule: ' + data.error);
+        }
+      } catch (error) {
+        console.error('Error approving reschedule:', error);
+        showErrorMessage('Error approving reschedule. Please try again.');
+      }
+    }
+
+    // Delete appointment from server and database
+    async function deleteAppointment(appointmentId) {
+      try {
+        const response = await fetch('/delete_appointment/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+          },
+          body: JSON.stringify({
+            id: appointmentId
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Remove from local data
+          allAppointments = allAppointments.filter(a => a.id != appointmentId);
+          
+          filterAndRenderAppointments(currentSection);
+          updateCounts();
+        }
+      } catch (error) {
+        console.error('Error deleting appointment:', error);
+      }
+    }
+
+    // Show confirmation modal
+    function showConfirmation(message, action) {
+      document.getElementById('confirmationMessage').textContent = message;
+      pendingAction = action;
+      
+      const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+      modal.show();
+    }
+
+    // Show reschedule modal
+    function showRescheduleModal(appointmentId) {
+      currentRescheduleId = appointmentId;
+      const appointment = allAppointments.find(a => a.id == appointmentId);
+      
+      if (appointment) {
+        // Set date restrictions
+        setDateRestrictions();
+        
+        // Pre-fill with current values only if within allowed range
+        const appointmentDate = new Date(appointment.appointment_date);
+        const today = new Date();
+        const maxDate = new Date();
+        maxDate.setDate(today.getDate() + 10);
+        
+        if (appointmentDate >= today && appointmentDate <= maxDate) {
+          document.getElementById('rescheduleDate').value = appointment.appointment_date;
+        } else {
+          document.getElementById('rescheduleDate').value = '';
+        }
+        
+        document.getElementById('rescheduleTime').value = appointment.appointment_time;
+      }
+      
+      const modal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
+      modal.show();
+    }
+
+    // Set date restrictions for reschedule modal - UPDATED TO ALLOW TODAY'S DATE
+    function setDateRestrictions() {
+      // Calculate today and 10 days from today
+      const today = new Date();
+      const maxDate = new Date();
+      maxDate.setDate(today.getDate() + 10);
+      
+      // Format dates as YYYY-MM-DD
+      const todayStr = today.toISOString().split('T')[0];
+      const maxDateStr = maxDate.toISOString().split('T')[0];
+      
+      // Set restrictions on reschedule date input
+      const rescheduleDate = document.getElementById('rescheduleDate');
+      if (rescheduleDate) {
+        rescheduleDate.min = todayStr;  // Allow today's date
+        rescheduleDate.max = maxDateStr;
+      }
+    }
+
+    // Update sidebar counts
+    function updateCounts() {
+      const counts = {
+        all: allAppointments.length,
+        scheduled: allAppointments.filter(a => a.status === 'pending').length,
+        approved: allAppointments.filter(a => a.status === 'approved').length,
+        rejected: allAppointments.filter(a => a.status === 'rejected').length,
+        rescheduling: allAppointments.filter(a => 
+          a.status === 'rescheduled' || a.status === 'pending_reschedule'
+        ).length,
+        reports: checkInOutRecords.length
+      };
+      
+      Object.keys(counts).forEach(status => {
+        const countElement = document.getElementById(`count-${status}`);
+        if (countElement) {
+          countElement.textContent = counts[status];
+        }
+      });
+    }
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    // Sidebar functions
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      
+      if (sidebar.classList.contains('collapsed')) {
+        showSidebar();
+      } else {
+        hideSidebar();
+      }
+    }
+    
+
+    function showSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('mainContent');
+      const toggleBtn = document.getElementById('toggleSidebar');
+      const sidebarToggleBtn = document.getElementById('closeSidebar');
+      const showBtn = document.getElementById('showSidebarBtn');
+      
+      sidebar.classList.remove('collapsed');
+      mainContent.classList.remove('expanded');
+      toggleBtn.innerHTML = '<i class="fas fa-times"></i>';
+      toggleBtn.title = 'Hide Sidebar';
+      
+      sidebarToggleBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+      sidebarToggleBtn.title = 'Hide Sidebar';
+      
+      showBtn.style.display = 'none';
+      
+      sessionStorage.setItem('sidebarCollapsed', 'false');
+    }
+
+    function hideSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('mainContent');
+      const toggleBtn = document.getElementById('toggleSidebar');
+      const sidebarToggleBtn = document.getElementById('closeSidebar');
+      const showBtn = document.getElementById('showSidebarBtn');
+      
+      sidebar.classList.add('collapsed');
+      mainContent.classList.add('expanded');
+      toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
+      toggleBtn.title = 'Show Navigation';
+      
+      sidebarToggleBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+      sidebarToggleBtn.title = 'Show Sidebar';
+      
+      showBtn.style.display = 'block';
+      
+      sessionStorage.setItem('sidebarCollapsed', 'true');
+    }
+
+    function initializeSidebarState() {
+      const isCollapsed = sessionStorage.getItem('sidebarCollapsed') === 'true';
+      
+      if (isCollapsed) {
+        hideSidebar();
+      } else {
+        showSidebar();
+      }
+      
+      if (window.innerWidth <= 768 && !sessionStorage.getItem('sidebarCollapsed')) {
+        hideSidebar();
+      }
+    }
+
+    // Fetch check-in/out records from server
+    async function fetchCheckInOutRecords(dateFilter = null) {
+      try {
+        showReportLoading();
+        
+        let url = '/get_checkinout_records/';
+        if (dateFilter) {
+          url += `?date=${dateFilter}`;
+        }
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.success) {
+          checkInOutRecords = data.records;
+          renderCheckInOutRecords();
+          hideReportLoading();
+          
+          // Update reports count
+          updateCounts();
+        } else {
+          showErrorMessage('Error fetching records: ' + data.error);
+          hideReportLoading();
+        }
+      } catch (error) {
+        console.error('Error fetching check-in/out records:', error);
+        showErrorMessage('Error fetching records. Please try again.');
+        hideReportLoading();
+      }
+    }
+
+    // Show loading state for reports
+    function showReportLoading() {
+      const tableBody = document.getElementById('report-table-body');
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="10" class="text-center py-4">
+            <div class="loading-spinner"></div>
+            <p class="mt-2">Loading records...</p>
+          </td>
+        </tr>
+      `;
+    }
+
+    // Hide loading state for reports
+    function hideReportLoading() {
+      // Loading state is replaced when rendering
+    }
+
+    // Render check-in/out records
+    function renderCheckInOutRecords() {
+      const tableBody = document.getElementById('report-table-body');
+      const emptyState = document.getElementById('report-empty-state');
+      const table = document.getElementById('report-table');
+      const paginationInfo = document.getElementById('report-pagination-info');
+      
+      if (checkInOutRecords.length === 0) {
+        table.style.display = 'none';
+        paginationInfo.style.display = 'none';
+        emptyState.classList.remove('d-none');
+        return;
+      }
+      
+      table.style.display = 'table';
+      paginationInfo.style.display = 'flex';
+      emptyState.classList.add('d-none');
+      
+      tableBody.innerHTML = '';
+      
+      checkInOutRecords.forEach((record, index) => {
+        const row = document.createElement('tr');
+        row.setAttribute('data-id', record.id);
+        
+        let statusBadge = '';
+        if (record.out_time) {
+          statusBadge = '<span class="badge bg-info">Checked Out</span>';
+        } else if (record.in_time) {
+          statusBadge = '<span class="badge bg-success">Checked In</span>';
+        } else {
+          statusBadge = '<span class="text-muted">Not Checked In</span>';
+        }
+        
+        // Calculate duration
+        const duration = calculateDuration(record.in_time, record.out_time);
+        
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${record.entry?.name || 'N/A'}</td>
+          <td>${record.entry?.phone || 'N/A'}</td>
+          <td class="editable-cell" data-field="in_time">
+            <span class="badge bg-secondary">${record.in_time ? formatDateTime(record.in_time) : 'Not checked in'}</span>
+          </td>
+          <td class="editable-cell" data-field="out_time">
+            <span class="badge bg-secondary">${record.out_time ? formatDateTime(record.out_time) : 'Not checked out'}</span>
+          </td>
+          <td>
+            <span class="${duration.class}">${duration.text}</span>
+          </td>
+          <td class="editable-cell" data-field="user_remarks">
+            ${record.user_remarks || '-'}
+          </td>
+          <td class="editable-cell" data-field="attendee_remarks">
+            ${record.attendee_remarks || '-'}
+          </td>
+          <td>${statusBadge}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-light edit-report-btn" onclick="showCheckoutModal(${record.id})">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+          </td>
+        `;
+        
+        tableBody.appendChild(row);
+      });
+      
+      // Update pagination info
+      paginationInfo.textContent = `Showing 1 to ${checkInOutRecords.length} of ${checkInOutRecords.length} entries`;
+    }
+
+// Format date time for display
+function formatDateTime(dateTimeStr) {
+  if (!dateTimeStr) return 'N/A';
+  
+  // Handle both ISO string and Date object
+  const date = typeof dateTimeStr === 'string' ? new Date(dateTimeStr) : dateTimeStr;
+  
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+// Show checkout modal for a specific record
+function showCheckoutModal(recordId) {
+  const record = checkInOutRecords.find(r => r.id == recordId);
+  
+  if (record) {
+    // Set the appointment ID in the form
+    document.getElementById('checkoutAppointmentId').value = record.entry?.id || '';
+    
+    // Pre-fill remarks if they exist
+    document.getElementById('attendee_remarks').value = record.attendee_remarks || '';
+    
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+    modal.show();
+  } else {
+    showErrorMessage('Record not found!');
+  }
+}
+
+// Handle checkout form submission
+async function handleCheckoutFormSubmit(event) {
+  event.preventDefault();
+  
+  const formData = new FormData();
+  formData.append('appointment_id', document.getElementById('checkoutAppointmentId').value);
+  formData.append('attendee_remarks', document.getElementById('attendee_remarks').value);
+  formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+  
+  try {
+    const response = await fetch('/process_checkout/', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      showSuccessMessage('Check-out completed successfully!');
+      
+      // Close the modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+      modal.hide();
+      
+      // Refresh the reports data
+      fetchCheckInOutRecords();
+    } else {
+      showErrorMessage('Error during check-out: ' + data.error);
+    }
+  } catch (error) {
+    console.error('Error processing check-out:', error);
+    showErrorMessage('Error processing check-out. Please try again.');
+  }
+}
+
+// Add this event listener to the DOMContentLoaded function
+document.getElementById('checkoutForm').addEventListener('submit', handleCheckoutFormSubmit);
+
+    // Handle checkout form submission
+    async function handleCheckoutFormSubmit(event) {
+      event.preventDefault();
+      
+      const formData = new FormData(event.target);
+      const appointmentId = formData.get('appointment_id');
+      const attendeeRemarks = formData.get('attendee_remarks');
+      
+      try {
+        const response = await fetch('/process_checkout/', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+          },
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          showSuccessMessage('Check-out completed successfully!');
+          
+          // Close the modal
+          const modal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+          modal.hide();
+          
+          // Refresh the reports data
+          fetchCheckInOutRecords();
+        } else {
+          showErrorMessage('Error during check-out: ' + data.error);
+        }
+      } catch (error) {
+        console.error('Error processing check-out:', error);
+        showErrorMessage('Error processing check-out. Please try again.');
+      }
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize sidebar state
+      initializeSidebarState();
+      
+      // Load saved entries preference
+      loadEntriesPreference();
+      
+      // Entries dropdown listener
+      document.getElementById('entries-select').addEventListener('change', handleEntriesChange);
+      
+      // Sidebar toggle listeners
+      document.getElementById('toggleSidebar').addEventListener('click', toggleSidebar);
+      document.getElementById('closeSidebar').addEventListener('click', function() {
+        if (document.getElementById('sidebar').classList.contains('collapsed')) {
+          showSidebar();
+        } else {
+          hideSidebar();
+        }
+      });
+      document.getElementById('showSidebarBtn').addEventListener('click', showSidebar);
+      
+      // Pagination listeners
+      document.getElementById('first-btn').addEventListener('click', firstPage);
+      document.getElementById('prev-btn').addEventListener('click', prevPage);
+      document.getElementById('next-btn').addEventListener('click', nextPage);
+      document.getElementById('last-btn').addEventListener('click', lastPage);
+      
+      document.getElementById('page-input').addEventListener('change', function() {
+        if (itemsPerPage !== 'all') {
+          const page = parseInt(this.value);
+          if (page >= 1 && page <= totalPages) {
+            goToPage(page);
+          } else {
+            this.value = currentPage;
+          }
+        }
+      });
+      
+      document.getElementById('page-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && itemsPerPage !== 'all') {
+          const page = parseInt(this.value);
+          if (page >= 1 && page <= totalPages) {
+            goToPage(page);
+          } else {
+            this.value = currentPage;
+          }
+        }
+      });
+
+      // Confirmation modal listener
+      document.getElementById('confirmAction').addEventListener('click', function() {
+        if (pendingAction) {
+          pendingAction();
+          pendingAction = null;
+        }
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('confirmationModal'));
+        modal.hide();
+      });
+
+      // Reschedule modal listeners - UPDATED TO ALLOW TODAY'S DATE
+      document.getElementById('submitReschedule').addEventListener('click', function() {
+        const newDate = document.getElementById('rescheduleDate').value;
+        const newTime = document.getElementById('rescheduleTime').value;
+        
+        if (!newDate || !newTime) {
+          showValidationMessage('Please fill in both date and time fields.');
+          return;
+        }
+        
+        // Additional validation for today's date
+        const selectedDate = new Date(newDate);
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        selectedDate.setHours(0,0,0,0);
+        
+        if (selectedDate.getTime() === today.getTime()) {
+          // Check if selected time is in the future
+          const now = new Date();
+          const selectedDateTime = new Date(`${newDate}T${newTime}`);
+          
+          if (selectedDateTime <= now) {
+            showValidationMessage('For today\'s date, please select a time in the future.');
+            return;
+          }
+        }
+        
+        // Get the current appointment to preserve attendee and use empty reason
+        const appointment = allAppointments.find(a => a.id == currentRescheduleId);
+        const currentAttendee = appointment ? appointment.designated_attendee : '';
+        
+        rescheduleByReceptionist(currentRescheduleId, newDate, newTime, currentAttendee, '');
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('rescheduleModal'));
+        modal.hide();
+      });
+
+      // Checkout form listener
+      document.getElementById('checkoutForm').addEventListener('submit', handleCheckoutFormSubmit);
+
+      // Time validation for reschedule modal - UPDATED TO ALLOW TODAY'S DATE
+      document.getElementById('rescheduleDate').addEventListener('change', function() {
+        const dateInput = this;
+        const timeInput = document.getElementById('rescheduleTime');
+        const timeRestrictionText = document.getElementById('timeRestrictionText');
+        
+        if (!dateInput.value) return;
+        
+        const selectedDate = new Date(dateInput.value);
+        const today = new Date();
+        const maxDate = new Date();
+        maxDate.setDate(today.getDate() + 10);
+        
+        // Check if selected date is within allowed range
+        if (selectedDate < today.setHours(0,0,0,0) || selectedDate > maxDate) {
+          showValidationMessage('Please select a date within the next 10 days (including today).');
+          dateInput.value = '';
+          return;
+        }
+        
+        // Reset today with proper time
+        today.setHours(0,0,0,0);
+        selectedDate.setHours(0,0,0,0);
+        
+        // If selected date is today, set time restrictions based on current time
+        if (selectedDate.getTime() === today.getTime()) {
+          const now = new Date();
+          let hh = now.getHours();
+          let min = now.getMinutes() + 1; // Add 1 minute to current time
+          
+          // Handle minute overflow
+          if (min >= 60) { 
+            hh += 1; 
+            min = 0; 
+          }
+          
+          // Handle hour overflow
+          if (hh >= 24) {
+            // This shouldn't happen since we're restricting to today
+            hh = 23;
+            min = 59;
+          }
+          
+          // Set minimum time to current time + 1 minute
+          timeInput.min = `${String(hh).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+          timeInput.max = "22:00";
+          
+          // Update help text
+          timeRestrictionText.textContent = `Available from ${timeInput.min} to 10:00 PM`;
+        } else {
+          // For future dates, allow full business hours
+          timeInput.min = "09:00";
+          timeInput.max = "22:00";
+          timeRestrictionText.textContent = "Available between 10:00 AM and 10:00 PM";
+        }
+      });
+      
+      // Report filter listeners
+      document.getElementById('applyReportFilter').addEventListener('click', function(e) {
+        e.preventDefault();
+        const dateFilter = document.getElementById('dateFilter').value;
+        fetchCheckInOutRecords(dateFilter);
+      });
+
+      document.getElementById('resetReportFilter').addEventListener('click', function() {
+        document.getElementById('dateFilter').value = '';
+        fetchCheckInOutRecords();
+      });
+      
+      // Fetch appointments and attendee choices
+      fetchAppointments();
+
+      setTimeout(() => {
+        if (attendeeChoices.length === 0) {
+          fetchAttendeeChoices();
+        }
+      }, 100);
+
+      // Start reminder clocks for approved appointments
+      setInterval(updateReminderClocks, 1000);
+// Update reminder clocks for approved appointments
+function updateReminderClocks() {
+  if (!filteredAppointments) return;
+  filteredAppointments.forEach(app => {
+  if (app.status === 'approved' || app.status === 'rescheduled') {
+      const clockSpan = document.getElementById(`reminder-clock-${app.id}`);
+      if (clockSpan) {
+        const now = new Date();
+        const apptDate = new Date(`${app.appointment_date}T${app.appointment_time}`);
+        // Subtract 1 hour (3600000 ms) for reminder time
+        const reminderTime = new Date(apptDate.getTime() - 3600000);
+        const diffMs = reminderTime - now;
+        if (diffMs > 0) {
+          const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+          const diffMin = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+          const diffSec = Math.floor((diffMs % (1000 * 60)) / 1000);
+          clockSpan.innerHTML = `<i class='fas fa-clock text-info'></i> Reminder will be sent in ${diffHrs}h ${diffMin}m ${diffSec}s`;
+        } else if (now < apptDate) {
+          // Reminder time passed, but appointment not yet started
+          clockSpan.innerHTML = `<span class='badge bg-warning text-dark'><i class='fas fa-bell'></i> Reminder sent</span>`;
+        } else {
+          clockSpan.innerHTML = `<i class='fas fa-bell text-success'></i> Appointment time reached!`;
+        }
+      }
+    }
+  });
+}
+    });
+
+    // Sidebar navigation
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Remove active class from all items
+        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+        
+        // Add active class to clicked item
+        this.classList.add('active');
+        
+        // Get section
+        const section = this.dataset.section;
+        
+        // Update title
+        const titles = {
+          'all': 'All Appointments',
+          'scheduled': 'Scheduled Appointments',
+          'approved': 'Approved Appointments',
+          'rejected': 'Rejected Appointments',
+          'rescheduling': 'Rescheduling Appointments',
+          'reports': 'Check-In/Check-Out Reports'
+        };
+        
+        document.getElementById('section-title').textContent = titles[section];
+        
+        // Reset to first page and render
+        currentPage = 1;
+        filterAndRenderAppointments(section);
+        
+        // Auto-hide sidebar on mobile after selection
+        if (window.innerWidth <= 768) {
+          setTimeout(() => {
+            hideSidebar();
+          }, 300);
+        }
+      });
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+      if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById('sidebar');
+        if (!sidebar.classList.contains('collapsed')) {
+          hideSidebar();
+        }
+      }
+    });
+  </script>
+</body>
+</html>

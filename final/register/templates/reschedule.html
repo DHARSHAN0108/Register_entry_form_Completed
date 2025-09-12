@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reschedule Appointment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* General page */
+        body {
+            background: linear-gradient(135deg, #1f1c2c, #928DAB);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Card */
+        .form-container {
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            animation: slideUp 0.8s ease;
+        }
+
+        /* Headings */
+        h2 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 25px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Progress bar */
+        .progress {
+            height: 8px;
+            margin-bottom: 25px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+        }
+        .progress-bar {
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            border-radius: 20px;
+        }
+
+        /* Current appointment info box */
+        .current-appointment {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .current-appointment h5 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .appointment-detail {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            color: rgba(255,255,255,0.9);
+            font-size: 0.95rem;
+        }
+
+        .appointment-detail i {
+            width: 25px;
+            color: #00d2ff;
+            margin-right: 10px;
+        }
+
+        /* Proposed changes highlight */
+        .proposed-changes {
+            background: rgba(255, 193, 7, 0.15);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .proposed-changes h5 {
+            color: #ffc107;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .proposed-changes .appointment-detail {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .proposed-changes .appointment-detail i {
+            color: #ffc107;
+        }
+
+        /* Floating fields */
+        .form-floating {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-floating input,
+        .form-floating select,
+        .form-floating textarea {
+            background: #fff !important;
+            color: #212529 !important;
+            border: 1px solid #ced4da;
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        /* Label styling */
+        .form-floating label {
+            color: #666;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            padding-left: 0.4rem;
+        }
+
+        /* Floating effect */
+        .form-floating input:focus ~ label,
+        .form-floating select:focus ~ label,
+        .form-floating textarea:focus ~ label,
+        .form-floating input:not(:placeholder-shown) ~ label,
+        .form-floating textarea:not(:placeholder-shown) ~ label,
+        .form-floating select:valid ~ label {
+            color: #0d6efd;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transform: translateY(-0.5rem);
+        }
+
+        /* Focus field */
+        .form-floating input:focus,
+        .form-floating select:focus,
+        .form-floating textarea:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25);
+        }
+
+        /* Errors */
+        .text-danger.small {
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            margin-left: 0.25rem;
+        }
+
+        /* Info alert */
+        .alert-info {
+            background: rgba(13, 202, 240, 0.1);
+            border: 1px solid rgba(13, 202, 240, 0.3);
+            color: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            color: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        /* Buttons */
+        .btn-custom {
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            border: none;
+            color: white;
+            font-weight: 500;
+            border-radius: 15px;
+            padding: 12px;
+            transition: 0.3s;
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,210,255,0.4);
+        }
+
+        .btn-cancel {
+            background: rgba(108, 117, 125, 0.8);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 10px 30px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-cancel:hover {
+            background: rgba(90, 98, 104, 0.9);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        /* Small helper text */
+        .form-text {
+            color: rgba(255,255,255,0.7) !important;
+            font-size: 0.85rem;
+        }
+
+        /* Modals */
+        .modal-content {
+            border-radius: 25px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px);
+            color: #fff;
+            text-align: center;
+            padding: 30px 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            animation: zoomIn 0.4s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .modal-body i {
+            font-size: 55px;
+            margin-bottom: 15px;
+            color: #ffc107;
+            text-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+        }
+        .modal-body h5 {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        .modal-body p {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 20px;
+        }
+        .btn-modern {
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            color: white;
+            border-radius: 12px;
+            padding: 10px 25px;
+            border: none;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+        .btn-modern:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0,210,255,0.4);
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="progress">
+            <div class="progress-bar" style="width: 75%"></div>
+        </div>
+        <h2><i class="fas fa-calendar-alt me-2"></i>Reschedule Appointment</h2>
+
+        <div class="current-appointment">
+            <h5><i class="fas fa-info-circle me-2"></i>Current Appointment Details</h5>
+            <div class="appointment-detail">
+                <i class="fas fa-user"></i>
+                <strong>Name:</strong> {{ appointment.name }}
+            </div>
+            <div class="appointment-detail">
+                <i class="fas fa-calendar"></i>
+                <strong>Current Date:</strong> {{ appointment.appointment_date }}
+            </div>
+            <div class="appointment-detail">
+                <i class="fas fa-clock"></i>
+                <strong>Current Time:</strong> {{ appointment.appointment_time }}
+            </div>
+            <div class="appointment-detail">
+                <i class="fas fa-tag"></i>
+                <strong>Category:</strong> {{ appointment.get_category_display }}
+            </div>
+            <div class="appointment-detail">
+                <i class="fas fa-user-md"></i>
+                <strong>Attendee:</strong> {{ appointment.get_designated_attendee_display }}
+            </div>
+        </div>
+
+        {% if appointment.status == 'pending_reschedule' %}
+        <div class="proposed-changes">
+            <h5><i class="fas fa-clock me-2"></i>Proposed New Schedule (Pending Approval)</h5>
+            <div class="appointment-detail">
+                <i class="fas fa-calendar"></i>
+                <strong>Proposed Date:</strong> {{ appointment.rescheduled_date }}
+            </div>
+            <div class="appointment-detail">
+                <i class="fas fa-clock"></i>
+                <strong>Proposed Time:</strong> {{ appointment.rescheduled_time }}
+            </div>
+            {% if appointment.reschedule_reason %}
+            <div class="appointment-detail">
+                <i class="fas fa-comment"></i>
+                <strong>Reason:</strong> {{ appointment.reschedule_reason }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="alert alert-warning">
+            <i class="fas fa-hourglass-half me-2"></i>
+            Your appointment reschedule is currently pending approval from our team. You will receive a confirmation email once the new schedule is approved. If you need to make further changes, you can use the form below.
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            After rescheduling, your appointment will be pending approval. You'll receive an email confirmation once approved.
+        </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            <div class="form-floating">
+                {{ form.appointment_date }}
+                <label for="{{ form.appointment_date.id_for_label }}">
+                    <i class="fas fa-calendar-day me-1"></i>{{ form.appointment_date.label }}
+                </label>
+                {% if form.appointment_date.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.appointment_date.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-floating">
+                {{ form.appointment_time }}
+                <label for="{{ form.appointment_time.id_for_label }}">
+                    <i class="fas fa-clock me-1"></i>{{ form.appointment_time.label }}
+                </label>
+                <div class="form-text">Available between 09:00 AM and 10:00 PM</div>
+                {% if form.appointment_time.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.appointment_time.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-floating">
+                {{ form.designated_attendee }}
+                <label for="{{ form.designated_attendee.id_for_label }}">
+                    <i class="fas fa-user-md me-1"></i>{{ form.designated_attendee.label }}
+                </label>
+                {% if form.designated_attendee.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.designated_attendee.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-floating">
+                {{ form.reason }}
+                <label for="{{ form.reason.id_for_label }}">
+                    <i class="fas fa-comment me-1"></i>{{ form.reason.label }}
+                </label>
+                {% if form.reason.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.reason.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-custom w-100">
+                <i class="fas fa-calendar-check me-2"></i>
+                {% if appointment.status == 'pending_reschedule' %}
+                    Update Reschedule Request
+                {% else %}
+                    Reschedule Appointment
+                {% endif %}
+            </button>
+            
+            <div class="text-center">
+                <a href="/" class="btn-cancel">
+                    <i class="fas fa-times me-2"></i>
+                    Cancel & Book New
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Modal for validation messages -->
+    <div class="modal fade" id="validationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                    <h5>Invalid Time Selection</h5>
+                    <p id="modalMessage" class="mb-3"></p>
+                    <button type="button" class="btn btn-modern" data-bs-dismiss="modal">
+                        <i class="fas fa-check me-2"></i>Understood
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
+            {% for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Time validation logic from step2.js - exact same implementation
+        (function() {
+            const dateInput = document.querySelector('input[type="date"]');
+            const timeInput = document.querySelector('input[type="time"]');
+
+            // Set minimum date to today
+            if (dateInput) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                dateInput.min = `${yyyy}-${mm}-${dd}`;
+                
+                // Set placeholder for floating labels
+                dateInput.setAttribute('placeholder', ' ');
+            }
+
+            if (timeInput) {
+                timeInput.setAttribute('placeholder', ' ');
+            }
+
+            function pad(n) { 
+                return String(n).padStart(2, '0'); 
+            }
+
+            function updateTimeLimits(triggeredByUser = false) {
+                if (!dateInput || !timeInput || !dateInput.value) return;
+
+                const selectedDate = new Date(dateInput.value);
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                selectedDate.setHours(0,0,0,0);
+
+                if (selectedDate.getTime() === today.getTime()) {
+                    // Today selected - set minimum time to current time + 1 minute
+                    const now = new Date();
+                    let hh = now.getHours();
+                    let min = now.getMinutes() + 1;
+                    if (min >= 60) { 
+                        hh += 1; 
+                        min = 0; 
+                    }
+                    timeInput.min = `${pad(hh)}:${pad(min)}`;
+                    timeInput.max = "22:00";
+
+                    if (timeInput.value && timeInput.value < timeInput.min) {
+                        if (triggeredByUser) {
+                            document.getElementById('modalMessage').innerText =
+                                "You cannot select a past time for today. Please choose a future time.";
+                            new bootstrap.Modal(document.getElementById('validationModal')).show();
+                        }
+                        timeInput.value = "";
+                    }
+                } else {
+                    // Future date selected - allow 09:00 to 22:00
+                    timeInput.min = "09:00";
+                    timeInput.max = "22:00";
+
+                    if (timeInput.value && (timeInput.value < "09:00" || timeInput.value > "22:00")) {
+                        if (triggeredByUser) {
+                            document.getElementById('modalMessage').innerText =
+                                "Appointments must be scheduled between 09:00 and 22:00.";
+                            new bootstrap.Modal(document.getElementById('validationModal')).show();
+                        }
+                        timeInput.value = "";
+                    }
+                }
+            }
+
+            // Event listeners exactly like step2.js
+            if (dateInput) {
+                dateInput.addEventListener('change', () => updateTimeLimits(false));
+            }
+            if (timeInput) {
+                timeInput.addEventListener('focus', () => updateTimeLimits(false));
+                timeInput.addEventListener('change', () => updateTimeLimits(true));
+                timeInput.addEventListener('input', () => updateTimeLimits(true));
+            }
+
+            // Initialize time limits on page load
+            updateTimeLimits(false);
+        })();
+
+        // Form submission validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const dateInput = document.querySelector('input[type="date"]');
+            const timeInput = document.querySelector('input[type="time"]');
+            const modalMessage = document.getElementById('modalMessage');
+
+            form.addEventListener('submit', function(e) {
+                // Check if date is selected
+                if (!dateInput.value) {
+                    e.preventDefault();
+                    modalMessage.textContent = "Please select an appointment date.";
+                    new bootstrap.Modal(document.getElementById('validationModal')).show();
+                    return;
+                }
+
+                // Check if time is selected
+                if (!timeInput.value) {
+                    e.preventDefault();
+                    modalMessage.textContent = "Please select an appointment time.";
+                    new bootstrap.Modal(document.getElementById('validationModal')).show();
+                    return;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

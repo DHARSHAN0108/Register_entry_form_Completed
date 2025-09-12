@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entry Register – Step 2</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/step.css' %}">
+  <link rel="icon" href="{% static 'images/step.png' %}">
+  <script src="https://kit.fontawesome.com/yourfontawesomekit.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="form-container">
+    <div class="progress">
+      <div class="progress-bar" style="width: 100%"></div>
+    </div>
+    <h2>Step 2 – Appointment Details</h2>
+
+    <form method="POST" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="mb-3">
+          {{ field }}
+          {% if field.name == 'appointment_date' %}
+            <small class="form-text text-muted">
+              Please select a date between today and {{ max_date|date:"Y-m-d" }}
+            </small>
+          {% endif %}
+          {% if field.errors %}
+            <div class="text-danger small mt-1">
+              {% for error in field.errors %} {{ error }} {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      <div class="d-flex gap-2">
+        <a href="{% url 'step1' %}" class="btn btn-secondary w-50">← Back</a>
+        <button type="submit" class="btn btn-custom w-50">Submit</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- File Error Modal -->
+  <div class="modal fade" id="fileErrorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <i class="fas fa-file-excel text-danger"></i>
+          <h5>File Upload Error</h5>
+          <p id="fileErrorMessage" class="text-light small"></p>
+        </div>
+        <div class="modal-footer justify-content-center">
+          <button type="button" class="btn-modern" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Time Error Modal -->
+  <div class="modal fade" id="timeErrorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body">
+          <i class="fas fa-clock text-warning"></i>
+          <h5>Invalid Time Selection</h5>
+          <p id="timeErrorMessage" class="text-light small"></p>
+        </div>
+        <div class="modal-footer justify-content-center">
+          <button type="button" class="btn-modern" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Add JavaScript to enhance the date selection experience
+    document.addEventListener('DOMContentLoaded', function() {
+      const dateInput = document.querySelector('input[type="date"]');
+      if (dateInput) {
+        // Set today and max date for reference
+        const today = new Date();
+        const maxDate = new Date();
+        maxDate.setDate(today.getDate() + 10);
+        
+        // Format dates for display
+        const todayStr = today.toISOString().split('T')[0];
+        const maxDateStr = maxDate.toISOString().split('T')[0];
+        
+        console.log('Date selection is restricted to:', todayStr, 'to', maxDateStr);
+      }
+    });
+  </script>
+</body>
+</html>

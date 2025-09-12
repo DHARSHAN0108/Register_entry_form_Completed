@@ -1,0 +1,284 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{% static 'images/adminlogin.png' %}">
+    <title>Receptionist Approval Dashboard</title>
+        <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 50%, #1a202c 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            color: white;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .calendar-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #4299e1, #63b3ed);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .alert {
+            background: linear-gradient(45deg, #48bb78, #68d391);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+        }
+
+        .alert.success {
+            background: linear-gradient(45deg, #48bb78, #68d391);
+        }
+
+        .alert.error {
+            background: linear-gradient(45deg, #f56565, #fc8181);
+        }
+
+        .alert.warning {
+            background: linear-gradient(45deg, #ed8936, #f6ad55);
+        }
+
+        .date-section {
+            margin-bottom: 30px;
+        }
+
+        .date-header {
+            background: linear-gradient(45deg, #4299e1, #63b3ed);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+
+        .table thead th {
+            background: #2d3748;
+            color: white;
+            padding: 20px 15px;
+            font-weight: 600;
+            text-align: left;
+            border: none;
+            font-size: 0.95rem;
+        }
+
+        .table tbody td {
+            padding: 20px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #2d3748;
+            vertical-align: middle;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-approved {
+            background: linear-gradient(45deg, #48bb78, #68d391);
+            color: white;
+        }
+
+        .status-pending {
+            background: linear-gradient(45deg, #ed8936, #f6ad55);
+            color: white;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-approve {
+            background: linear-gradient(45deg, #48bb78, #68d391);
+            color: white;
+        }
+
+        .btn-approve:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-reject {
+            background: linear-gradient(45deg, #f56565, #fc8181);
+            color: white;
+        }
+
+        .btn-reject:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 101, 101, 0.4);
+        }
+
+        .username-cell {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .created-at-cell {
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .header-title {
+                font-size: 2rem;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+            }
+            
+            .table {
+                min-width: 600px;
+            }
+            
+            .btn {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="header-title">
+                <div class="calendar-icon">👥</div>
+                Receptionist Approval Dashboard
+            </h1>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert success">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if receptionists %}
+            <div class="date-section">
+                <div class="date-header">{{ today|date:"M. d, Y" }}</div>
+
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Created At</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for receptionist in receptionists %}
+                            <tr>
+                                <td class="username-cell">{{ receptionist.username }}</td>
+                                <td class="created-at-cell">{{ receptionist.created_at|date:"M. d, Y, g:i a" }}</td>
+                                <td>
+                                    {% if receptionist.is_approved %}
+                                        <span class="status-badge status-approved">Approved</span>
+                                    {% else %}
+                                        <span class="status-badge status-pending">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not receptionist.is_approved %}
+                                        <a href="{% url 'approve_receptionist' receptionist.id %}" class="btn btn-approve">Approve</a>
+                                    {% endif %}
+                                    <a href="{% url 'reject_receptionist' receptionist.id %}" class="btn btn-reject">Reject</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <div class="no-data">No receptionists registered yet.</div>
+        {% endif %}
+    </div>
+</body>
+</html>

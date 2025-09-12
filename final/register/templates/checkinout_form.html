@@ -1,0 +1,795 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-In Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="{% static 'images/check-in.png' %}">
+    <style>
+        /* General page */
+        body {
+            background: linear-gradient(135deg, #1f1c2c, #928DAB);  
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Card */
+        .form-container {
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            animation: slideUp 0.8s ease;
+        }
+
+        /* Headings */
+        h2, h4, h5 {
+            color: #fff;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        /* Form sections */
+        .form-section {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-section h4 {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Floating fields */
+        .form-floating {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-floating input,
+        .form-floating textarea {
+            background: #fff !important;
+            color: #212529 !important;
+            border: 1px solid #ced4da;
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        /* Disabled input styling */
+        .form-floating input:disabled,
+        .form-floating textarea:disabled {
+            background: #f8f9fa !important;
+            color: #6c757d !important;
+            border-color: #dee2e6;
+            cursor: not-allowed;
+        }
+
+        /* Label styling */
+        .form-floating label {
+            color: #666;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            padding-left: 0.4rem;
+        }
+
+        /* Disabled label styling */
+        .form-floating input:disabled ~ label,
+        .form-floating textarea:disabled ~ label {
+            color: #6c757d;
+        }
+
+        /* Floating effect */
+        .form-floating input:focus ~ label,
+        .form-floating textarea:focus ~ label,
+        .form-floating input:not(:placeholder-shown) ~ label,
+        .form-floating textarea:not(:placeholder-shown) ~ label {
+            color: #0d6efd;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transform: translateY(-0.5rem);
+        }
+
+        /* Focus field */
+        .form-floating input:focus,
+        .form-floating textarea:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13,110,253,0.25);
+        }
+
+        /* Buttons */
+        .btn-custom {
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            border: none;
+            color: white;
+            font-weight: 500;
+            border-radius: 15px;
+            padding: 12px 25px;
+            transition: 0.3s;
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,210,255,0.4);
+        }
+
+        /* Disabled button styling */
+        .btn-custom:disabled {
+            background: linear-gradient(90deg, #6c757d, #6c757d);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-outline-custom {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 15px;
+            padding: 10px 20px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-outline-custom:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        /* Alerts */
+        .alert-info {
+            background: rgba(13, 202, 240, 0.1);
+            border: 1px solid rgba(13, 202, 240, 0.3);
+            color: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .alert-warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            color: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .alert-danger {
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            color: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .alert-success {
+            background: rgba(40, 167, 69, 0.1);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            color: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .message-alert, .warning-alert, .danger-alert, .success-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: slideIn 0.5s ease-out;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+        }
+
+        .message-alert { background: rgba(23, 162, 184, 0.9); }
+        .warning-alert { background: rgba(255, 193, 7, 0.9); }
+        .danger-alert { background: rgba(220, 53, 69, 0.9); }
+        .success-alert { background: rgba(40, 167, 69, 0.9); }
+
+        /* Status-specific sections */
+        .requirement-notice {
+            background: rgba(13, 202, 240, 0.15);
+            border: 1px solid rgba(13, 202, 240, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .requirement-notice h5 {
+            color: #0dcaf0;
+            margin-bottom: 15px;
+        }
+
+        .requirement-notice ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+
+        .requirement-notice li {
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        /* Status-specific styling */
+        .status-pending { background: rgba(255, 193, 7, 0.15); border: 1px solid rgba(255, 193, 7, 0.3); }
+        .status-rejected { background: rgba(220, 53, 69, 0.15); border: 1px solid rgba(220, 53, 69, 0.3); }
+        .status-rescheduled { background: rgba(23, 162, 184, 0.15); border: 1px solid rgba(23, 162, 184, 0.3); }
+        .status-pending_reschedule { background: rgba(253, 126, 20, 0.15); border: 1px solid rgba(253, 126, 20, 0.3); }
+        .status-approved { background: rgba(40, 167, 69, 0.15); border: 1px solid rgba(40, 167, 69, 0.3); }
+
+        .not-approved {
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .not-approved.status-pending h5 { color: #ffc107; }
+        .not-approved.status-rejected h5 { color: #dc3545; }
+        .not-approved.status-rescheduled h5 { color: #17a2b8; }
+        .not-approved.status-pending_reschedule h5 { color: #fd7e14; }
+
+        .already-checked-in {
+            background: rgba(255, 193, 7, 0.15);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .already-checked-in h5 {
+            color: #ffc107;
+            margin-bottom: 15px;
+        }
+
+        /* Appointment details */
+        .appointment-details {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .appointment-details h5 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .appointment-detail {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            color: rgba(255,255,255,0.9);
+            font-size: 0.95rem;
+        }
+
+        .appointment-detail i {
+            width: 25px;
+            color: #00d2ff;
+            margin-right: 10px;
+        }
+
+        /* Status badge styling */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.status-pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .status-badge.status-approved {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+
+        .status-badge.status-rejected {
+            background: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+
+        .status-badge.status-rescheduled {
+            background: rgba(23, 162, 184, 0.2);
+            color: #17a2b8;
+            border: 1px solid rgba(23, 162, 184, 0.3);
+        }
+
+        .status-badge.status-pending_reschedule {
+            background: rgba(253, 126, 20, 0.2);
+            color: #fd7e14;
+            border: 1px solid rgba(253, 126, 20, 0.3);
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 20px;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% if message %}
+    <div class="{% if 'successful' in message %}success-alert{% elif 'already' in message or 'Cannot check-in' in message or 'No appointment' in message or 'waiting for approval' in message or 'rejected' in message or 'rescheduled' in message or 'pending' in message %}{% if 'Cannot check-in' in message or 'No appointment' in message or 'rejected' in message %}danger-alert{% else %}warning-alert{% endif %}{% else %}message-alert{% endif %} alert alert-{% if 'successful' in message %}success{% elif 'already' in message or 'Cannot check-in' in message or 'No appointment' in message or 'waiting for approval' in message or 'rejected' in message or 'rescheduled' in message or 'pending' in message %}{% if 'Cannot check-in' in message or 'No appointment' in message or 'rejected' in message %}danger{% else %}warning{% endif %}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <div class="form-container">
+        <h2><i class="fas fa-sign-in-alt me-2"></i>Visitor Check-In</h2>
+        <p class="text-center mb-4" style="color: rgba(255,255,255,0.8);">Please fill the form below to check in</p>
+
+        <!-- Requirement Notice -->
+        <div class="requirement-notice">
+            <h5><i class="fas fa-info-circle me-2"></i>Check-In Requirements</h5>
+            <ul>
+                <li><strong>Approved or rescheduled appointments</strong> can be checked in</li>
+                <li>Phone number must match the appointment record</li>
+                <li>Only <strong>one check-in per day</strong> per appointment is allowed</li>
+                <li>Contact reception if your appointment is not approved yet</li>
+            </ul>
+        </div>
+
+        <!-- Check if already checked in today -->
+        {% if entry and already_checked_in %}
+        <div class="already-checked-in">
+            <h5><i class="fas fa-exclamation-triangle me-2"></i>Already Checked In</h5>
+            <p>This appointment has already been checked in today. You cannot check in again for the same appointment on the same day.</p>
+            <div class="mt-3">
+                <small class="text-warning">If you need to make changes, please contact the reception desk.</small>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Check if appointment is not approved or rescheduled -->
+        {% if entry and not_approved and entry.status != 'rescheduled' %}
+        <div class="not-approved status-{{ entry.status }}">
+            <h5>
+                {% if entry.status == 'pending' %}
+                    <i class="fas fa-clock me-2"></i>Waiting for Approval
+                {% elif entry.status == 'rejected' %}
+                    <i class="fas fa-times-circle me-2"></i>Appointment Rejected
+                {% elif entry.status == 'pending_reschedule' %}
+                    <i class="fas fa-hourglass-half me-2"></i>Reschedule Pending
+                {% else %}
+                    <i class="fas fa-exclamation-circle me-2"></i>Check-in Not Allowed
+                {% endif %}
+            </h5>
+            
+            {% if entry.status == 'pending' %}
+                <p><strong>Your appointment is waiting for approval.</strong></p>
+                <p>You can check-in only after your appointment is approved by our team.</p>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>What to do next:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Wait for approval notification via email</li>
+                        <li>Contact reception if urgent: <strong>+1-234-567-8900</strong></li>
+                        <li>Check your email regularly for updates</li>
+                    </ul>
+                </div>
+            {% elif entry.status == 'rejected' %}
+                <p><strong>Your appointment has been rejected.</strong></p>
+                <p>Please contact reception to reschedule or book a new appointment.</p>
+                <div class="alert alert-danger mt-3">
+                    <i class="fas fa-phone me-2"></i>
+                    <strong>Next Steps:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Contact reception immediately</li>
+                        <li>Use reschedule link if sent via email</li>
+                        <li>Book a new appointment online</li>
+                    </ul>
+                </div>
+            {% elif entry.status == 'pending_reschedule' %}
+                <p><strong>Your reschedule request is pending approval.</strong></p>
+                <p>You can check-in only after the reschedule is approved.</p>
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-clock me-2"></i>
+                    <strong>Status Update:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Your reschedule request is being reviewed</li>
+                        <li>You'll receive email notification once approved</li>
+                        <li>Current check-in is not available until approval</li>
+                    </ul>
+                </div>
+            {% else %}
+                <p><strong>This appointment cannot be checked in.</strong></p>
+                <p>Only appointments with <span class="badge bg-success">Approved</span> or <span class="badge bg-info">Rescheduled</span> status can be checked in.</p>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Need Help?</strong> Please contact reception for assistance.
+                </div>
+            {% endif %}
+            
+            <div class="mt-3">
+                <strong>Current Status:</strong> 
+                <span class="status-badge status-{{ entry.status }}">
+                    {{ entry.get_status_display }}
+                    {% if entry.status == 'pending' %}
+                        <i class="fas fa-clock ms-1"></i>
+                    {% elif entry.status == 'rejected' %}
+                        <i class="fas fa-times-circle ms-1"></i>
+                    {% elif entry.status == 'pending_reschedule' %}
+                        <i class="fas fa-hourglass-half ms-1"></i>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Check-In Form -->
+        <div class="form-section">
+            <h4><i class="fas fa-sign-in-alt me-2"></i>Check-In Form</h4>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-floating mb-3">
+                    {{ checkin_form.phone }}
+                    <label for="{{ checkin_form.phone.id_for_label }}">
+                        <i class="fas fa-phone me-1"></i>Phone Number *
+                    </label>
+                    {% if checkin_form.phone.errors %}
+                        <div class="text-danger mt-2">
+                            {% for error in checkin_form.phone.errors %}
+                                <small><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="form-floating mb-4">
+                    {{ checkin_form.user_remarks }}
+                    <label for="{{ checkin_form.user_remarks.id_for_label }}">
+                        <i class="fas fa-comment me-1"></i>Your Remarks (Optional)
+                    </label>
+                    {% if checkin_form.user_remarks.errors %}
+                        <div class="text-danger mt-2">
+                            {% for error in checkin_form.user_remarks.errors %}
+                                <small><i class="fas fa-exclamation-triangle me-1"></i>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {% if already_checked_in or not_approved and entry.status != 'rescheduled' %}
+                    <button type="button" class="btn btn-custom" disabled>
+                        <i class="fas fa-ban me-2"></i>Check-In Not Available
+                    </button>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            {% if already_checked_in %}
+                                <i class="fas fa-info-circle me-1"></i>Already checked in today
+                            {% elif not_approved and entry.status != 'rescheduled' %}
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                {% if entry.status == 'pending' %}
+                                    Waiting for approval
+                                {% elif entry.status == 'rejected' %}
+                                    Appointment rejected
+                                {% elif entry.status == 'pending_reschedule' %}
+                                    Reschedule pending
+                                {% else %}
+                                    Appointment not approved
+                                {% endif %}
+                            {% endif %}
+                        </small>
+                    </div>
+                {% else %}
+                    <button type="submit" name="check_in" class="btn btn-custom">
+                        <i class="fas fa-sign-in-alt me-2"></i>Check In Now
+                    </button>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Display Appointment Details if found -->
+        {% if entry %}
+        <div class="appointment-details">
+            <h5><i class="fas fa-info-circle me-2"></i>Appointment Details</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="appointment-detail">
+                        <i class="fas fa-user"></i>
+                        <strong>Name:</strong> {{ entry.name }}
+                    </div>
+                    <div class="appointment-detail">
+                        <i class="fas fa-envelope"></i>
+                        <strong>Email:</strong> {{ entry.email }}
+                    </div>
+                    <div class="appointment-detail">
+                        <i class="fas fa-phone"></i>
+                        <strong>Phone:</strong> {{ entry.phone }}
+                    </div>
+                    <div class="appointment-detail">
+                        <i class="fas fa-tags"></i>
+                        <strong>Category:</strong> {{ entry.get_category_display }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="appointment-detail">
+                        <i class="fas fa-calendar"></i>
+                        <strong>Date:</strong> {{ entry.appointment_date }}
+                    </div>
+                    <div class="appointment-detail">
+                        <i class="fas fa-clock"></i>
+                        <strong>Time:</strong> {{ entry.appointment_time }}
+                    </div>
+                    <div class="appointment-detail">
+                        <i class="fas fa-user-md"></i>
+                        <strong>Attendee:</strong> {{ entry.get_designated_attendee_display }}
+                    </div>
+                    <div class="appointment-detail">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Status:</strong> 
+                        <span class="status-badge status-{{ entry.status }}">
+                            {{ entry.get_status_display }}
+                            {% if entry.status == 'approved' %}
+                                <i class="fas fa-check-circle ms-1"></i>
+                            {% elif entry.status == 'pending' %}
+                                <i class="fas fa-clock ms-1"></i>
+                            {% elif entry.status == 'rejected' %}
+                                <i class="fas fa-times-circle ms-1"></i>
+                            {% elif entry.status == 'rescheduled' %}
+                                <i class="fas fa-calendar-alt ms-1"></i>
+                            {% elif entry.status == 'pending_reschedule' %}
+                                <i class="fas fa-hourglass-half ms-1"></i>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            {% if entry.reason %}
+            <div class="appointment-detail">
+                <i class="fas fa-comment-dots"></i>
+                <strong>Reason:</strong> {{ entry.reason }}
+            </div>
+            {% endif %}
+            
+            {% if entry.status == 'approved' or entry.status == 'rescheduled' and not already_checked_in %}
+            <div class="alert alert-success mt-3" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Great!</strong> Your appointment is ready for check-in.
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-hide message alert after 5 seconds
+        setTimeout(() => {
+            const alert = document.querySelector('.message-alert, .warning-alert, .danger-alert, .success-alert');
+            if (alert) {
+                alert.classList.remove('show');
+                setTimeout(() => alert.remove(), 500);
+            }
+        }, 5000);
+        
+        // Set placeholder for floating labels and disable form if needed
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                input.setAttribute('placeholder', ' ');
+            });
+
+        });
+
+        // Enhanced form validation with status-specific messages
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const phoneInput = document.querySelector('#id_phone');
+            const phoneValue = phoneInput.value.trim();
+            
+            // Basic phone validation
+            if (!phoneValue) {
+                e.preventDefault();
+                showAlert('Please enter your phone number.', 'warning');
+                phoneInput.focus();
+                return false;
+            }
+            
+            // Phone number format validation
+            const cleanPhone = phoneValue.replace(/\D/g, '');
+            if (cleanPhone.length !== 10) {
+                e.preventDefault();
+                showAlert('Please enter a valid 10-digit phone number.', 'warning');
+                phoneInput.focus();
+                return false;
+            }
+
+            // Show loading state
+            const submitBtn = document.querySelector('button[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+                submitBtn.disabled = true;
+                
+                // Re-enable after 10 seconds if no response
+                setTimeout(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }, 10000);
+            }
+        });
+
+        // Function to show custom alerts
+        function showAlert(message, type = 'info') {
+            // Remove existing alerts
+            const existingAlert = document.querySelector('.custom-alert');
+            if (existingAlert) existingAlert.remove();
+
+            // Create new alert
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `custom-alert alert alert-${type} alert-dismissible fade show`;
+            alertDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 1000;
+                max-width: 300px;
+                border-radius: 12px;
+                backdrop-filter: blur(10px);
+            `;
+            
+            const alertColors = {
+                'success': 'rgba(40, 167, 69, 0.9)',
+                'warning': 'rgba(255, 193, 7, 0.9)',
+                'danger': 'rgba(220, 53, 69, 0.9)',
+                'info': 'rgba(23, 162, 184, 0.9)'
+            };
+            
+            alertDiv.style.background = alertColors[type] || alertColors['info'];
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            // Auto-hide after 4 seconds
+            setTimeout(() => {
+                if (alertDiv) {
+                    alertDiv.classList.remove('show');
+                    setTimeout(() => alertDiv.remove(), 500);
+                }
+            }, 4000);
+        }
+
+        // Status-specific guidance
+        function showStatusGuidance(status) {
+            const guidance = {
+                'pending': {
+                    title: 'Appointment Pending Approval',
+                    message: 'Your appointment is waiting for approval. You\'ll receive an email notification once it\'s approved.',
+                    type: 'warning'
+                },
+                'rejected': {
+                    title: 'Appointment Rejected',
+                    message: 'Please contact reception to reschedule or book a new appointment.',
+                    type: 'danger'
+                },
+                'pending_reschedule': {
+                    title: 'Reschedule Pending',
+                    message: 'Your reschedule request is being reviewed. You\'ll get an update soon.',
+                    type: 'warning'
+                }
+            };
+            
+            const info = guidance[status];
+            if (info) {
+                showAlert(`<strong>${info.title}</strong><br>${info.message}`, info.type);
+            }
+        }
+
+        // Enhanced phone number formatting
+        document.addEventListener('DOMContentLoaded', function() {
+            const phoneInput = document.querySelector('#id_phone');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 10) value = value.slice(0, 10);
+                    
+                    // Format as XXX-XXX-XXXX for better readability
+                    if (value.length >= 6) {
+                        value = value.replace(/(\d{3})(\d{3})(\d+)/, '$1-$2-$3');
+                    } else if (value.length >= 3) {
+                        value = value.replace(/(\d{3})(\d+)/, '$1-$2');
+                    }
+                    
+                    e.target.value = value;
+                });
+
+                // Remove formatting on focus for easier editing
+                phoneInput.addEventListener('focus', function(e) {
+                    e.target.value = e.target.value.replace(/\D/g, '');
+                });
+            }
+        });
+
+        // Accessibility improvements
+        document.addEventListener('keydown', function(e) {
+            // Allow Escape key to close alerts
+            if (e.key === 'Escape') {
+                const alert = document.querySelector('.alert.show');
+                if (alert) {
+                    const closeBtn = alert.querySelector('.btn-close');
+                    if (closeBtn) closeBtn.click();
+                }
+            }
+            
+            // Enhanced form navigation with Tab key
+            if (e.key === 'Tab') {
+                const focusableElements = document.querySelectorAll(
+                    'input:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                );
+                
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+                
+                if (e.shiftKey && document.activeElement === firstElement) {
+                    e.preventDefault();
+                    lastElement.focus();
+                } else if (!e.shiftKey && document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
