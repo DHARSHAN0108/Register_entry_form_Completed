@@ -78,9 +78,9 @@ WSGI_APPLICATION = 'final.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'tasks_db',
-        'USER': 'myuser',
-        'PASSWORD': 'dl18',
+        'NAME': 'your_db_name',
+        'USER': 'your_db_user_name',
+        'PASSWORD': 'your_db_password',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -138,9 +138,10 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'dharshanjiju001@gmail.com'
-EMAIL_HOST_PASSWORD = 'oxwa sasi mtym cepo'
+EMAIL_HOST_USER = 'your_mail@gmail.com'
+EMAIL_HOST_PASSWORD = 'your_mail_api_key'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
 
 
 
